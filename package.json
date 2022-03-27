@@ -1,0 +1,79 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "save-slack-to-inkdrop",
+  "title": "save-slack-to-inkdrop",
+  "description": "",
+  "icon": "command-icon.png",
+  "author": "kymmt",
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "index",
+      "title": "Save Slack to Inkdrop",
+      "description": "",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "slackToken",
+      "description": "Slack Token",
+      "type": "password",
+      "required": true,
+      "title": "Slack Token"
+    },
+    {
+      "name": "inkdropUserName",
+      "description": "Inkdrop API User Name",
+      "type": "textfield",
+      "required": true,
+      "title": "Inkdrop API User Name"
+    },
+    {
+      "name": "inkdropPassword",
+      "description": "Inkdrop API Password",
+      "type": "password",
+      "required": true,
+      "title": "Inkdrop API Password"
+    },
+    {
+      "name": "inkdropAddress",
+      "description": "Inkdrop API Address",
+      "type": "textfield",
+      "required": true,
+      "title": "Inkdrop API Address"
+    },
+    {
+      "name": "inkdropPort",
+      "description": "Inkdrop API Port",
+      "type": "textfield",
+      "required": true,
+      "title": "Inkdrop API Port"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.31.0",
+    "@slack/web-api": "^6.7.0",
+    "axios": "^0.26.1",
+    "date-fns": "^2.28.0",
+    "emoji-js": "^3.7.0"
+  },
+  "devDependencies": {
+    "@types/emoji-js": "^3.5.0",
+    "@types/node": "~16.10.0",
+    "@types/react": "^17.0.28",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "prettier": "^2.5.1",
+    "react-devtools": "^4.19.2",
+    "typescript": "^4.4.3"
+  },
+  "scripts": {
+    "build": "ray build -e dist",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint"
+  }
+}
