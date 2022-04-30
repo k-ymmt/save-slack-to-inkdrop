@@ -46,8 +46,8 @@ export class SlackClient {
       return undefined;
     }
 
-    const ts = getTs(tsString.slice(1), url.searchParams.get("thread_ts"));
-    if (!ts) {
+    const ts = Number(tsString.slice(1)) / 1000000;
+    if (isNaN(ts)) {
       return undefined;
     }
     return {
@@ -75,11 +75,12 @@ export class SlackClient {
     }
 
     const message = messages[0];
-    const [user, channel] = await Promise.all([getUser(message.user), this.getChannel(options.channelId)]);
 
     if (!message.text || !message.ts) {
       return undefined;
     }
+
+    const [user, channel] = await Promise.all([getUser(message.user), this.getChannel(options.channelId)]);
 
     const ts = message.thread_ts ?? message.ts;
     if (!ts) {
@@ -137,11 +138,3 @@ export class SlackClient {
   }
 }
 
-function getTs(ts: string, threadTs?: string | null): number | undefined {
-  const tsNumber = Number(ts);
-  if (isNaN(tsNumber)) {
-    return undefined;
-  }
-  const threadTsNumber = Number(threadTs ?? NaN);
-  return (isNaN(threadTsNumber) ? undefined : threadTsNumber) ?? tsNumber / 1000000;
-}

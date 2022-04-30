@@ -16,8 +16,15 @@ import {
 import { useEffect, useState } from "react";
 import { SlackChannel, SlackClient, SlackMessage } from "./SlackClient";
 import { PreferencesStore } from "./Preferences";
-import { format, toDate } from "date-fns";
-import { InkdropBook, InkdropClient, InkdropColor, InkdropTag } from "./InkdropClient";
+import {format, fromUnixTime, toDate} from "date-fns";
+import {
+  AllInkdropNoteStatus,
+  InkdropBook,
+  InkdropClient,
+  InkdropColor,
+  InkdropNoteStatus,
+  InkdropTag
+} from "./InkdropClient";
 import { EmojiConvertor } from "emoji-js";
 import Style = Toast.Style;
 
@@ -25,6 +32,7 @@ interface CommandForm {
   slackUrl?: string;
   book: string;
   tags: string[];
+  status: InkdropNoteStatus
 }
 
 const store = new PreferencesStore();
@@ -43,20 +51,36 @@ export default function Command() {
         await showToast(Style.Failure, "Slack URL is required not empty.");
         return;
       }
+
       const props = SlackClient.parseSlackUrl(values.slackUrl);
       if (!props) {
         await showToast(Style.Failure, "Not Slack Message url.");
         return;
       }
+
       const bookId = values.book;
       const book = books?.find((book) => book.id === bookId);
       if (!book) {
         await showToast(Style.Failure, "Required Book Id.");
         return;
       }
+
       await LocalStorage.setItem("book", book.id);
 
-      push(<SlackPreview channelId={props.channelId} ts={props.ts} book={book} />);
+      const tagIds = values.tags
+      const selectedTags = tagIds
+        .map(tagId => tags?.find(tag => tag.id === tagId))
+        .filter((tag): tag is InkdropTag => tag !== undefined)
+
+      push(
+        <SlackPreview
+          channelId={props.channelId}
+          ts={props.ts}
+          status={values.status}
+          book={book}
+          tags={selectedTags}
+        />
+      );
     })();
   }
 
@@ -88,6 +112,9 @@ export default function Command() {
       }
     >
       <Form.TextField id="slackUrl" title="Slack URL" />
+      <Form.Dropdown id="status" title="Inkdrop Status" defaultValue="onHold">
+        {AllInkdropNoteStatus.map(status => <Form.DropdownItem key={status} title={status} value={status} />)}
+      </Form.Dropdown>
       <Form.Dropdown id="book" title="Inkdrop Book" defaultValue={defaultBookId}>
         {books?.map((book) => (
           <Form.DropdownItem key={book.id} title={book.name} value={book.id} />
@@ -96,6 +123,7 @@ export default function Command() {
       <Form.TagPicker id="tags" title="Inkdrop Tags">
         {tags?.map((tag) => (
           <Form.TagPicker.Item
+            key={tag.id}
             title={tag.name}
             value={tag.id}
             icon={{ source: Icon.Dot, tintColor: toReaycastColor(tag.color) }}
@@ -109,7 +137,9 @@ export default function Command() {
 interface SlackPreviewProps {
   channelId: string;
   ts: number;
+  status: InkdropNoteStatus
   book: InkdropBook;
+  tags: InkdropTag[]
 }
 
 function SlackPreview(props: SlackPreviewProps): JSX.Element {
@@ -145,7 +175,7 @@ function SlackPreview(props: SlackPreviewProps): JSX.Element {
                 await showHUD("Require Message.");
                 return;
               }
-              await saveToInkdrop({ message, book: props.book });
+              await saveToInkdrop({ message, status: props.status, book: props.book, tags: props.tags });
             }}
           />
         </ActionPanel>
@@ -179,7 +209,7 @@ function slackMessageText(message: SlackMessage | undefined): string {
         return "";
       }
 
-      const date = toDate(ts);
+      const date = fromUnixTime(ts);
       return `${format(date, "yyyy LL dd")} | `;
     }
 
@@ -203,7 +233,9 @@ function slackMessageText(message: SlackMessage | undefined): string {
 
 interface SaveToInkdropOptions {
   message: SlackMessage;
+  status: InkdropNoteStatus;
   book: InkdropBook;
+  tags: InkdropTag[]
 }
 
 async function saveToInkdrop(options: SaveToInkdropOptions) {
@@ -212,7 +244,7 @@ async function saveToInkdrop(options: SaveToInkdropOptions) {
     bookId: options.book.id,
     share: "private",
     status: "active",
-    tags: [],
+    tags: options.tags.map(tag => tag.id),
   });
   await showHUD("Save Success!");
   await popToRoot();

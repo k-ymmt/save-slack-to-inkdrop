@@ -10,9 +10,12 @@ export interface InkdropOptions {
   address: string;
 }
 
+export const AllInkdropNoteStatus = ["active", "onHold", "completed", "dropped", "none"]
+export type InkdropNoteStatus = typeof AllInkdropNoteStatus[number]
+
 interface InkdropCreateNoteOptions {
   bookId: string;
-  status: "active" | "onHold" | "completed" | "dropped" | "none";
+  status: InkdropNoteStatus;
   share: "private" | "public";
   body: string;
   tags?: string[];
